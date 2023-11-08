@@ -1,5 +1,5 @@
 import * as i0 from '@angular/core';
-import { untracked, computed, signal, inject, Injector, DestroyRef, runInInjectionContext, Injectable } from '@angular/core';
+import { untracked, computed, signal, Injector, inject, runInInjectionContext, DestroyRef, Injectable } from '@angular/core';
 
 function toDeepSignal(signal) {
     const value = untracked(() => signal());
@@ -64,10 +64,10 @@ function signalStore(...args) {
                 });
             }
         }
-        /** @nocollapse */ static ɵfac = i0.ɵɵngDeclareFactory({ minVersion: "12.0.0", version: "17.0.0-next.8", ngImport: i0, type: SignalStore, deps: [], target: i0.ɵɵFactoryTarget.Injectable });
-        /** @nocollapse */ static ɵprov = i0.ɵɵngDeclareInjectable({ minVersion: "12.0.0", version: "17.0.0-next.8", ngImport: i0, type: SignalStore, providedIn: config.providedIn || null });
+        /** @nocollapse */ static ɵfac = i0.ɵɵngDeclareFactory({ minVersion: "12.0.0", version: "17.0.0", ngImport: i0, type: SignalStore, deps: [], target: i0.ɵɵFactoryTarget.Injectable });
+        /** @nocollapse */ static ɵprov = i0.ɵɵngDeclareInjectable({ minVersion: "12.0.0", version: "17.0.0", ngImport: i0, type: SignalStore, providedIn: config.providedIn || null });
     }
-    i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "17.0.0-next.8", ngImport: i0, type: SignalStore, decorators: [{
+    i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "17.0.0", ngImport: i0, type: SignalStore, decorators: [{
                 type: Injectable,
                 args: [{ providedIn: config.providedIn || null }]
             }], ctorParameters: () => [] });

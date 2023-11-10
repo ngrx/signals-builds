@@ -32,6 +32,10 @@ function signalState(initialState) {
     return deepSignal;
 }
 
+function getState(signalState) {
+    return signalState[STATE_SIGNAL]();
+}
+
 function patchState(signalState, ...updaters) {
     signalState[STATE_SIGNAL].update((currentState) => updaters.reduce((nextState, updater) => ({
         ...nextState,
@@ -188,5 +192,5 @@ function withState(stateOrFactory) {
  * Generated bundle index. Do not edit.
  */
 
-export { patchState, signalState, signalStore, signalStoreFeature, type, withComputed, withHooks, withMethods, withState };
+export { getState, patchState, signalState, signalStore, signalStoreFeature, type, withComputed, withHooks, withMethods, withState };
 //# sourceMappingURL=ngrx-signals.mjs.map

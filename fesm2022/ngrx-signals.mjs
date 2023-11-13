@@ -1,5 +1,5 @@
 import * as i0 from '@angular/core';
-import { untracked, computed, signal, Injector, inject, runInInjectionContext, DestroyRef, Injectable } from '@angular/core';
+import { untracked, isSignal, computed, signal, Injector, inject, runInInjectionContext, DestroyRef, Injectable } from '@angular/core';
 
 function toDeepSignal(signal) {
     const value = untracked(() => signal());
@@ -11,8 +11,10 @@ function toDeepSignal(signal) {
             if (!(prop in value)) {
                 return target[prop];
             }
-            if (!target[prop]) {
-                target[prop] = computed(() => target()[prop]);
+            if (!isSignal(target[prop])) {
+                Object.defineProperty(target, prop, {
+                    value: computed(() => target()[prop]),
+                });
             }
             return toDeepSignal(target[prop]);
         },

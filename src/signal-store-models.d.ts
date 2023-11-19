@@ -1,13 +1,13 @@
 import { Signal } from '@angular/core';
 import { DeepSignal } from './deep-signal';
 import { SignalStateMeta } from './signal-state';
-import { IsKnownRecord, Prettify } from './ts-helpers';
+import { IsUnknownRecord, Prettify } from './ts-helpers';
 export type SignalStoreConfig = {
     providedIn: 'root';
 };
-export type SignalStoreSlices<State> = IsKnownRecord<Prettify<State>> extends true ? {
-    [Key in keyof State]: IsKnownRecord<State[Key]> extends true ? DeepSignal<State[Key]> : Signal<State[Key]>;
-} : {};
+export type SignalStoreSlices<State> = {
+    [Key in keyof State]: State[Key] extends Record<string, unknown> ? IsUnknownRecord<State[Key]> extends true ? Signal<State[Key]> : DeepSignal<State[Key]> : Signal<State[Key]>;
+};
 export type SignalStore<FeatureResult extends SignalStoreFeatureResult> = Prettify<SignalStoreSlices<FeatureResult['state']> & FeatureResult['signals'] & FeatureResult['methods'] & SignalStateMeta<Prettify<FeatureResult['state']>>>;
 export type SignalsDictionary = Record<string, Signal<unknown>>;
 export type MethodsDictionary = Record<string, (...args: any[]) => unknown>;
@@ -15,14 +15,14 @@ export type SignalStoreHooks = {
     onInit?: () => void;
     onDestroy?: () => void;
 };
-export type InnerSignalStore<State extends object = object, Signals extends SignalsDictionary = SignalsDictionary, Methods extends MethodsDictionary = MethodsDictionary> = {
+export type InnerSignalStore<State extends Record<string, unknown> = Record<string, unknown>, Signals extends SignalsDictionary = SignalsDictionary, Methods extends MethodsDictionary = MethodsDictionary> = {
     slices: SignalStoreSlices<State>;
     signals: Signals;
     methods: Methods;
     hooks: SignalStoreHooks;
 } & SignalStateMeta<State>;
 export type SignalStoreFeatureResult = {
-    state: object;
+    state: Record<string, unknown>;
     signals: SignalsDictionary;
     methods: MethodsDictionary;
 };

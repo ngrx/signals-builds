@@ -1,2 +1,2 @@
 import { SignalStateMeta } from './signal-state';
-export declare function getState<State extends object>(signalState: SignalStateMeta<State>): State;
+export declare function getState<State extends Record<string, unknown>>(signalState: SignalStateMeta<State>): State;

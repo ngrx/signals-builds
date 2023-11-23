@@ -14,6 +14,7 @@ function toDeepSignal(signal) {
             if (!isSignal(target[prop])) {
                 Object.defineProperty(target, prop, {
                     value: computed(() => target()[prop]),
+                    configurable: true,
                 });
             }
             return toDeepSignal(target[prop]);

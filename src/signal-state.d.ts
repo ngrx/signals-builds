@@ -1,9 +1,5 @@
-import { WritableSignal } from '@angular/core';
+import { StateSignal } from './state-signal';
 import { DeepSignal } from './deep-signal';
-export declare const STATE_SIGNAL: unique symbol;
-export type SignalStateMeta<State extends object> = {
-    [STATE_SIGNAL]: WritableSignal<State>;
-};
-type SignalState<State extends object> = DeepSignal<State> & SignalStateMeta<State>;
+type SignalState<State extends object> = DeepSignal<State> & StateSignal<State>;
 export declare function signalState<State extends object>(initialState: State): SignalState<State>;
 export {};

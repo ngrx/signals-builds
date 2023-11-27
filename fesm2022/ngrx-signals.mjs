@@ -1,6 +1,19 @@
 import * as i0 from '@angular/core';
 import { untracked, isSignal, computed, signal, Injector, inject, runInInjectionContext, DestroyRef, Injectable } from '@angular/core';
 
+const STATE_SIGNAL = Symbol('STATE_SIGNAL');
+
+function getState(stateSignal) {
+    return stateSignal[STATE_SIGNAL]();
+}
+
+function patchState(stateSignal, ...updaters) {
+    stateSignal[STATE_SIGNAL].update((currentState) => updaters.reduce((nextState, updater) => ({
+        ...nextState,
+        ...(typeof updater === 'function' ? updater(nextState) : updater),
+    }), currentState));
+}
+
 function toDeepSignal(signal) {
     const value = untracked(() => signal());
     if (!isRecord(value)) {
@@ -25,7 +38,6 @@ function isRecord(value) {
     return value?.constructor === Object;
 }
 
-const STATE_SIGNAL = Symbol('STATE_SIGNAL');
 function signalState(initialState) {
     const stateSignal = signal(initialState);
     const deepSignal = toDeepSignal(stateSignal.asReadonly());
@@ -33,17 +45,6 @@ function signalState(initialState) {
         value: stateSignal,
     });
     return deepSignal;
-}
-
-function getState(signalState) {
-    return signalState[STATE_SIGNAL]();
-}
-
-function patchState(signalState, ...updaters) {
-    signalState[STATE_SIGNAL].update((currentState) => updaters.reduce((nextState, updater) => ({
-        ...nextState,
-        ...(typeof updater === 'function' ? updater(nextState) : updater),
-    }), currentState));
 }
 
 function signalStore(...args) {

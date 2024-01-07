@@ -1,6 +1,6 @@
 import { Type } from '@angular/core';
 import { StateSignal } from './state-signal';
-import { EmptyFeatureResult, InnerSignalStore, MergeFeatureResults, SignalStoreProps, SignalStoreConfig, SignalStoreFeature, SignalStoreFeatureResult } from './signal-store-models';
+import { EmptyFeatureResult, InnerSignalStore, MergeFeatureResults, SignalStoreConfig, SignalStoreFeature, SignalStoreFeatureResult, SignalStoreProps } from './signal-store-models';
 import { Prettify } from './ts-helpers';
 export declare function signalStore<F1 extends SignalStoreFeatureResult>(f1: SignalStoreFeature<EmptyFeatureResult, F1>): Type<SignalStoreProps<F1> & StateSignal<Prettify<F1['state']>>>;
 export declare function signalStore<F1 extends SignalStoreFeatureResult, F2 extends SignalStoreFeatureResult, R extends SignalStoreFeatureResult = MergeFeatureResults<[F1, F2]>>(f1: SignalStoreFeature<EmptyFeatureResult, F1>, f2: SignalStoreFeature<{} & F1, F2>): Type<SignalStoreProps<R> & StateSignal<Prettify<R['state']>>>;

@@ -1,5 +1,5 @@
 import * as i0 from '@angular/core';
-import { untracked, isSignal, computed, signal, Injector, inject, runInInjectionContext, DestroyRef, Injectable } from '@angular/core';
+import { untracked, isSignal, computed, signal, DestroyRef, inject, Injectable } from '@angular/core';
 
 const STATE_SIGNAL = Symbol('STATE_SIGNAL');
 
@@ -62,14 +62,12 @@ function signalStore(...args) {
             for (const key in props) {
                 this[key] = props[key];
             }
-            if (hooks.onInit) {
-                hooks.onInit();
+            const { onInit, onDestroy } = hooks;
+            if (onInit) {
+                onInit();
             }
-            if (hooks.onDestroy) {
-                const injector = inject(Injector);
-                inject(DestroyRef).onDestroy(() => {
-                    runInInjectionContext(injector, hooks.onDestroy);
-                });
+            if (onDestroy) {
+                inject(DestroyRef).onDestroy(onDestroy);
             }
         }
         /** @nocollapse */ static ɵfac = i0.ɵɵngDeclareFactory({ minVersion: "12.0.0", version: "17.0.0", ngImport: i0, type: SignalStore, deps: [], target: i0.ɵɵFactoryTarget.Injectable });

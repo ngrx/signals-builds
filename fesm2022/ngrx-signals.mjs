@@ -118,8 +118,17 @@ function withComputed(signalsFactory) {
     };
 }
 
-function withHooks(hooks) {
+function withHooks(hooksOrFactory) {
     return (store) => {
+        const storeProps = {
+            [STATE_SIGNAL]: store[STATE_SIGNAL],
+            ...store.slices,
+            ...store.signals,
+            ...store.methods,
+        };
+        const hooks = typeof hooksOrFactory === 'function'
+            ? hooksOrFactory(storeProps)
+            : hooksOrFactory;
         const createHook = (name) => {
             const hook = hooks[name];
             const currentHook = store.hooks[name];
@@ -128,12 +137,7 @@ function withHooks(hooks) {
                     if (currentHook) {
                         currentHook();
                     }
-                    hook({
-                        [STATE_SIGNAL]: store[STATE_SIGNAL],
-                        ...store.slices,
-                        ...store.signals,
-                        ...store.methods,
-                    });
+                    hook(storeProps);
                 }
                 : currentHook;
         };

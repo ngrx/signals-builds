@@ -1,4 +1,4 @@
-import { assertInInjectionContext, Injector, inject, DestroyRef, isSignal, effect } from '@angular/core';
+import { assertInInjectionContext, Injector, inject, DestroyRef, isSignal, untracked, effect } from '@angular/core';
 import { Subject, isObservable, noop } from 'rxjs';
 
 function rxMethod(generator, config) {
@@ -12,7 +12,10 @@ function rxMethod(generator, config) {
     destroyRef.onDestroy(() => sourceSub.unsubscribe());
     const rxMethodFn = (input) => {
         if (isSignal(input)) {
-            const watcher = effect(() => source$.next(input()), { injector });
+            const watcher = effect(() => {
+                const value = input();
+                untracked(() => source$.next(value));
+            }, { injector });
             const instanceSub = { unsubscribe: () => watcher.destroy() };
             sourceSub.add(instanceSub);
             return instanceSub;

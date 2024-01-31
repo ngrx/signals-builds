@@ -1,6 +1,5 @@
-import { assertInInjectionContext, Injector, inject, DestroyRef, isSignal } from '@angular/core';
-import { toObservable } from '@angular/core/rxjs-interop';
-import { Subject, isObservable, of } from 'rxjs';
+import { assertInInjectionContext, Injector, inject, DestroyRef, isSignal, effect } from '@angular/core';
+import { Subject, isObservable, noop } from 'rxjs';
 
 function rxMethod(generator, config) {
     if (!config?.injector) {
@@ -12,19 +11,19 @@ function rxMethod(generator, config) {
     const sourceSub = generator(source$).subscribe();
     destroyRef.onDestroy(() => sourceSub.unsubscribe());
     const rxMethodFn = (input) => {
-        let input$;
         if (isSignal(input)) {
-            input$ = toObservable(input, { injector });
+            const watcher = effect(() => source$.next(input()), { injector });
+            const instanceSub = { unsubscribe: () => watcher.destroy() };
+            sourceSub.add(instanceSub);
+            return instanceSub;
         }
-        else if (isObservable(input)) {
-            input$ = input;
+        if (isObservable(input)) {
+            const instanceSub = input.subscribe((value) => source$.next(value));
+            sourceSub.add(instanceSub);
+            return instanceSub;
         }
-        else {
-            input$ = of(input);
-        }
-        const instanceSub = input$.subscribe((value) => source$.next(value));
-        sourceSub.add(instanceSub);
-        return instanceSub;
+        source$.next(input);
+        return { unsubscribe: noop };
     };
     rxMethodFn.unsubscribe = sourceSub.unsubscribe.bind(sourceSub);
     return rxMethodFn;

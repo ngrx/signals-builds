@@ -100,7 +100,12 @@ function type() {
 }
 
 function excludeKeys(obj, keys) {
-    return Object.keys(obj).reduce((acc, key) => (keys.includes(key) ? acc : { ...acc, [key]: obj[key] }), {});
+    return Object.keys(obj).reduce((acc, key) => {
+        if (!keys.includes(key)) {
+            acc[key] = obj[key];
+        }
+        return acc;
+    }, {});
 }
 
 function withComputed(signalsFactory) {

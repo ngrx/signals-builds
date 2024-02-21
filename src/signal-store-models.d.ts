@@ -10,7 +10,7 @@ export type SignalStoreSlices<State> = IsKnownRecord<Prettify<State>> extends tr
 } : {};
 export type SignalStoreProps<FeatureResult extends SignalStoreFeatureResult> = Prettify<SignalStoreSlices<FeatureResult['state']> & FeatureResult['signals'] & FeatureResult['methods']>;
 export type SignalsDictionary = Record<string, Signal<unknown>>;
-export type MethodsDictionary = Record<string, (...args: any[]) => unknown>;
+export type MethodsDictionary = Record<string, Function>;
 export type SignalStoreHooks = {
     onInit?: () => void;
     onDestroy?: () => void;

@@ -1,4 +1,4 @@
-import { assertInInjectionContext, Injector, inject, DestroyRef, isSignal, untracked, effect } from '@angular/core';
+import { assertInInjectionContext, inject, Injector, DestroyRef, isSignal, effect, untracked } from '@angular/core';
 import { Subject, isObservable, noop } from 'rxjs';
 
 function rxMethod(generator, config) {

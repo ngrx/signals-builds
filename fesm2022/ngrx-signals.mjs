@@ -1,5 +1,5 @@
 import * as i0 from '@angular/core';
-import { untracked, isSignal, computed, signal, DestroyRef, inject, Injectable } from '@angular/core';
+import { untracked, isSignal, computed, signal, inject, DestroyRef, Injectable } from '@angular/core';
 
 const STATE_SIGNAL = Symbol('STATE_SIGNAL');
 
@@ -70,10 +70,10 @@ function signalStore(...args) {
                 inject(DestroyRef).onDestroy(onDestroy);
             }
         }
-        /** @nocollapse */ static ɵfac = i0.ɵɵngDeclareFactory({ minVersion: "12.0.0", version: "17.0.0", ngImport: i0, type: SignalStore, deps: [], target: i0.ɵɵFactoryTarget.Injectable });
-        /** @nocollapse */ static ɵprov = i0.ɵɵngDeclareInjectable({ minVersion: "12.0.0", version: "17.0.0", ngImport: i0, type: SignalStore, providedIn: config.providedIn || null });
+        /** @nocollapse */ static ɵfac = i0.ɵɵngDeclareFactory({ minVersion: "12.0.0", version: "17.3.0", ngImport: i0, type: SignalStore, deps: [], target: i0.ɵɵFactoryTarget.Injectable });
+        /** @nocollapse */ static ɵprov = i0.ɵɵngDeclareInjectable({ minVersion: "12.0.0", version: "17.3.0", ngImport: i0, type: SignalStore, providedIn: config.providedIn || null });
     }
-    i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "17.0.0", ngImport: i0, type: SignalStore, decorators: [{
+    i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "17.3.0", ngImport: i0, type: SignalStore, decorators: [{
                 type: Injectable,
                 args: [{ providedIn: config.providedIn || null }]
             }], ctorParameters: () => [] });

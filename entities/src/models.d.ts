@@ -6,15 +6,13 @@ export type EntityState<Entity> = {
     ids: EntityId[];
 };
 export type NamedEntityState<Entity, Collection extends string> = {
-    [K in Collection as `${K}EntityMap`]: EntityMap<Entity>;
-} & {
-    [K in Collection as `${K}Ids`]: EntityId[];
+    [K in keyof EntityState<Entity> as `${Collection}${Capitalize<K>}`]: EntityState<Entity>[K];
 };
 export type EntitySignals<Entity> = {
     entities: Signal<Entity[]>;
 };
 export type NamedEntitySignals<Entity, Collection extends string> = {
-    [K in Collection as `${K}Entities`]: Signal<Entity[]>;
+    [K in keyof EntitySignals<Entity> as `${Collection}${Capitalize<K>}`]: EntitySignals<Entity>[K];
 };
 export type EntityIdProps<Entity> = {
     [K in keyof Entity as Entity[K] extends EntityId ? K : never]: Entity[K];

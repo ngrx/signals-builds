@@ -1,5 +1,5 @@
-import { EmptyFeatureResult, SignalsDictionary, SignalStoreFeature, SignalStoreFeatureResult, SignalStoreSlices } from './signal-store-models';
+import { EmptyFeatureResult, SignalsDictionary, SignalStoreFeature, SignalStoreFeatureResult, StateSignals } from './signal-store-models';
 import { Prettify } from './ts-helpers';
-export declare function withComputed<Input extends SignalStoreFeatureResult, Signals extends SignalsDictionary>(signalsFactory: (store: Prettify<SignalStoreSlices<Input['state']> & Input['signals']>) => Signals): SignalStoreFeature<Input, EmptyFeatureResult & {
-    signals: Signals;
+export declare function withComputed<Input extends SignalStoreFeatureResult, ComputedSignals extends SignalsDictionary>(signalsFactory: (store: Prettify<StateSignals<Input['state']> & Input['computed']>) => ComputedSignals): SignalStoreFeature<Input, EmptyFeatureResult & {
+    computed: ComputedSignals;
 }>;

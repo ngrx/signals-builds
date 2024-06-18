@@ -1,8 +1,8 @@
 import { StateSignal } from './state-signal';
-import { EmptyFeatureResult, SignalStoreFeature, SignalStoreFeatureResult, SignalStoreSlices } from './signal-store-models';
+import { EmptyFeatureResult, SignalStoreFeature, SignalStoreFeatureResult, StateSignals } from './signal-store-models';
 import { Prettify } from './ts-helpers';
-type HookFn<Input extends SignalStoreFeatureResult> = (store: Prettify<SignalStoreSlices<Input['state']> & Input['signals'] & Input['methods'] & StateSignal<Prettify<Input['state']>>>) => void;
-type HooksFactory<Input extends SignalStoreFeatureResult> = (store: Prettify<SignalStoreSlices<Input['state']> & Input['signals'] & Input['methods'] & StateSignal<Prettify<Input['state']>>>) => {
+type HookFn<Input extends SignalStoreFeatureResult> = (store: Prettify<StateSignals<Input['state']> & Input['computed'] & Input['methods'] & StateSignal<Prettify<Input['state']>>>) => void;
+type HooksFactory<Input extends SignalStoreFeatureResult> = (store: Prettify<StateSignals<Input['state']> & Input['computed'] & Input['methods'] & StateSignal<Prettify<Input['state']>>>) => {
     onInit?: () => void;
     onDestroy?: () => void;
 };

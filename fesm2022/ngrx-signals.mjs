@@ -56,8 +56,8 @@ function signalStore(...args) {
     class SignalStore {
         constructor() {
             const innerStore = features.reduce((store, feature) => feature(store), getInitialInnerStore());
-            const { slices, signals, methods, hooks } = innerStore;
-            const props = { ...slices, ...signals, ...methods };
+            const { stateSignals, computedSignals, methods, hooks } = innerStore;
+            const props = { ...stateSignals, ...computedSignals, ...methods };
             this[STATE_SIGNAL] = innerStore[STATE_SIGNAL];
             for (const key in props) {
                 this[key] = props[key];
@@ -82,8 +82,8 @@ function signalStore(...args) {
 function getInitialInnerStore() {
     return {
         [STATE_SIGNAL]: signal({}),
-        slices: {},
-        signals: {},
+        stateSignals: {},
+        computedSignals: {},
         methods: {},
         hooks: {},
     };
@@ -110,14 +110,17 @@ function excludeKeys(obj, keys) {
 
 function withComputed(signalsFactory) {
     return (store) => {
-        const signals = signalsFactory({ ...store.slices, ...store.signals });
-        const signalsKeys = Object.keys(signals);
-        const slices = excludeKeys(store.slices, signalsKeys);
-        const methods = excludeKeys(store.methods, signalsKeys);
+        const computedSignals = signalsFactory({
+            ...store.stateSignals,
+            ...store.computedSignals,
+        });
+        const computedSignalsKeys = Object.keys(computedSignals);
+        const stateSignals = excludeKeys(store.stateSignals, computedSignalsKeys);
+        const methods = excludeKeys(store.methods, computedSignalsKeys);
         return {
             ...store,
-            slices,
-            signals: { ...store.signals, ...signals },
+            stateSignals,
+            computedSignals: { ...store.computedSignals, ...computedSignals },
             methods,
         };
     };
@@ -127,8 +130,8 @@ function withHooks(hooksOrFactory) {
     return (store) => {
         const storeProps = {
             [STATE_SIGNAL]: store[STATE_SIGNAL],
-            ...store.slices,
-            ...store.signals,
+            ...store.stateSignals,
+            ...store.computedSignals,
             ...store.methods,
         };
         const hooks = typeof hooksOrFactory === 'function'
@@ -160,17 +163,17 @@ function withMethods(methodsFactory) {
     return (store) => {
         const methods = methodsFactory({
             [STATE_SIGNAL]: store[STATE_SIGNAL],
-            ...store.slices,
-            ...store.signals,
+            ...store.stateSignals,
+            ...store.computedSignals,
             ...store.methods,
         });
         const methodsKeys = Object.keys(methods);
-        const slices = excludeKeys(store.slices, methodsKeys);
-        const signals = excludeKeys(store.signals, methodsKeys);
+        const stateSignals = excludeKeys(store.stateSignals, methodsKeys);
+        const computedSignals = excludeKeys(store.computedSignals, methodsKeys);
         return {
             ...store,
-            slices,
-            signals,
+            stateSignals,
+            computedSignals,
             methods: { ...store.methods, ...methods },
         };
     };
@@ -184,16 +187,16 @@ function withState(stateOrFactory) {
             ...currentState,
             ...state,
         }));
-        const slices = stateKeys.reduce((acc, key) => {
-            const slice = computed(() => store[STATE_SIGNAL]()[key]);
-            return { ...acc, [key]: toDeepSignal(slice) };
+        const stateSignals = stateKeys.reduce((acc, key) => {
+            const sliceSignal = computed(() => store[STATE_SIGNAL]()[key]);
+            return { ...acc, [key]: toDeepSignal(sliceSignal) };
         }, {});
-        const signals = excludeKeys(store.signals, stateKeys);
+        const computedSignals = excludeKeys(store.computedSignals, stateKeys);
         const methods = excludeKeys(store.methods, stateKeys);
         return {
             ...store,
-            slices: { ...store.slices, ...slices },
-            signals,
+            stateSignals: { ...store.stateSignals, ...stateSignals },
+            computedSignals,
             methods,
         };
     };

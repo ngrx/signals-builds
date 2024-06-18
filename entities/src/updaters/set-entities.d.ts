@@ -1,11 +1,11 @@
 import { PartialStateUpdater } from '@ngrx/signals';
-import { EntityId, EntityIdKey, EntityState, NamedEntityState } from '../models';
+import { EntityId, EntityState, NamedEntityState, SelectEntityId } from '../models';
 export declare function setEntities<Entity extends {
     id: EntityId;
 }>(entities: Entity[]): PartialStateUpdater<EntityState<Entity>>;
 export declare function setEntities<Entity, Collection extends string>(entities: Entity[], config: {
     collection: Collection;
-    idKey: EntityIdKey<Entity>;
+    selectId: SelectEntityId<NoInfer<Entity>>;
 }): PartialStateUpdater<NamedEntityState<Entity, Collection>>;
 export declare function setEntities<Entity extends {
     id: EntityId;
@@ -13,5 +13,5 @@ export declare function setEntities<Entity extends {
     collection: Collection;
 }): PartialStateUpdater<NamedEntityState<Entity, Collection>>;
 export declare function setEntities<Entity>(entities: Entity[], config: {
-    idKey: EntityIdKey<Entity>;
+    selectId: SelectEntityId<NoInfer<Entity>>;
 }): PartialStateUpdater<EntityState<Entity>>;

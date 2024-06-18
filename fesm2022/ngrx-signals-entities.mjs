@@ -8,8 +8,9 @@ var DidMutate;
     DidMutate[DidMutate["Both"] = 2] = "Both";
 })(DidMutate || (DidMutate = {}));
 
-function getEntityIdKey(config) {
-    return config?.idKey ?? 'id';
+const defaultSelectId = (entity) => entity.id;
+function getEntityIdSelector(config) {
+    return config?.selectId ?? defaultSelectId;
 }
 function getEntityStateKeys(config) {
     const collection = config?.collection;
@@ -40,8 +41,8 @@ function getEntityUpdaterResult(state, stateKeys, didMutate) {
         }
     }
 }
-function addEntityMutably(state, entity, idKey) {
-    const id = entity[idKey];
+function addEntityMutably(state, entity, selectId) {
+    const id = selectId(entity);
     if (state.entityMap[id]) {
         return DidMutate.None;
     }
@@ -49,18 +50,18 @@ function addEntityMutably(state, entity, idKey) {
     state.ids.push(id);
     return DidMutate.Both;
 }
-function addEntitiesMutably(state, entities, idKey) {
+function addEntitiesMutably(state, entities, selectId) {
     let didMutate = DidMutate.None;
     for (const entity of entities) {
-        const result = addEntityMutably(state, entity, idKey);
+        const result = addEntityMutably(state, entity, selectId);
         if (result === DidMutate.Both) {
             didMutate = result;
         }
     }
     return didMutate;
 }
-function setEntityMutably(state, entity, idKey) {
-    const id = entity[idKey];
+function setEntityMutably(state, entity, selectId) {
+    const id = selectId(entity);
     if (state.entityMap[id]) {
         state.entityMap[id] = entity;
         return DidMutate.Entities;
@@ -69,10 +70,10 @@ function setEntityMutably(state, entity, idKey) {
     state.ids.push(id);
     return DidMutate.Both;
 }
-function setEntitiesMutably(state, entities, idKey) {
+function setEntitiesMutably(state, entities, selectId) {
     let didMutate = DidMutate.None;
     for (const entity of entities) {
-        const result = setEntityMutably(state, entity, idKey);
+        const result = setEntityMutably(state, entity, selectId);
         if (didMutate === DidMutate.Both) {
             continue;
         }
@@ -113,21 +114,21 @@ function updateEntitiesMutably(state, idsOrPredicate, changes) {
 }
 
 function addEntity(entity, config) {
-    const idKey = getEntityIdKey(config);
+    const selectId = getEntityIdSelector(config);
     const stateKeys = getEntityStateKeys(config);
     return (state) => {
         const clonedState = cloneEntityState(state, stateKeys);
-        const didMutate = addEntityMutably(clonedState, entity, idKey);
+        const didMutate = addEntityMutably(clonedState, entity, selectId);
         return getEntityUpdaterResult(clonedState, stateKeys, didMutate);
     };
 }
 
 function addEntities(entities, config) {
-    const idKey = getEntityIdKey(config);
+    const selectId = getEntityIdSelector(config);
     const stateKeys = getEntityStateKeys(config);
     return (state) => {
         const clonedState = cloneEntityState(state, stateKeys);
-        const didMutate = addEntitiesMutably(clonedState, entities, idKey);
+        const didMutate = addEntitiesMutably(clonedState, entities, selectId);
         return getEntityUpdaterResult(clonedState, stateKeys, didMutate);
     };
 }
@@ -159,31 +160,31 @@ function removeAllEntities(config) {
 }
 
 function setEntity(entity, config) {
-    const idKey = getEntityIdKey(config);
+    const selectId = getEntityIdSelector(config);
     const stateKeys = getEntityStateKeys(config);
     return (state) => {
         const clonedState = cloneEntityState(state, stateKeys);
-        const didMutate = setEntityMutably(clonedState, entity, idKey);
+        const didMutate = setEntityMutably(clonedState, entity, selectId);
         return getEntityUpdaterResult(clonedState, stateKeys, didMutate);
     };
 }
 
 function setEntities(entities, config) {
-    const idKey = getEntityIdKey(config);
+    const selectId = getEntityIdSelector(config);
     const stateKeys = getEntityStateKeys(config);
     return (state) => {
         const clonedState = cloneEntityState(state, stateKeys);
-        const didMutate = setEntitiesMutably(clonedState, entities, idKey);
+        const didMutate = setEntitiesMutably(clonedState, entities, selectId);
         return getEntityUpdaterResult(clonedState, stateKeys, didMutate);
     };
 }
 
 function setAllEntities(entities, config) {
-    const idKey = getEntityIdKey(config);
+    const selectId = getEntityIdSelector(config);
     const stateKeys = getEntityStateKeys(config);
     return () => {
         const state = { entityMap: {}, ids: [] };
-        setEntitiesMutably(state, entities, idKey);
+        setEntitiesMutably(state, entities, selectId);
         return {
             [stateKeys.entityMapKey]: state.entityMap,
             [stateKeys.idsKey]: state.ids,

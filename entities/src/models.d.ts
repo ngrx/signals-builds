@@ -14,10 +14,7 @@ export type EntityComputed<Entity> = {
 export type NamedEntityComputed<Entity, Collection extends string> = {
     [K in keyof EntityComputed<Entity> as `${Collection}${Capitalize<K>}`]: EntityComputed<Entity>[K];
 };
-export type EntityIdProps<Entity> = {
-    [K in keyof Entity as Entity[K] extends EntityId ? K : never]: Entity[K];
-};
-export type EntityIdKey<Entity> = keyof EntityIdProps<Entity> & string;
+export type SelectEntityId<Entity> = (entity: Entity) => EntityId;
 export type EntityPredicate<Entity> = (entity: Entity) => boolean;
 export type EntityChanges<Entity> = Partial<Entity> | ((entity: Entity) => Partial<Entity>);
 export declare enum DidMutate {

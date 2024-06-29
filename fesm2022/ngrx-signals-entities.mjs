@@ -220,6 +220,10 @@ function updateAllEntities(changes, config) {
     };
 }
 
+function entityConfig(config) {
+    return config;
+}
+
 function withEntities(config) {
     const { entityMapKey, idsKey, entitiesKey } = getEntityStateKeys(config);
     return signalStoreFeature(withState({
@@ -238,5 +242,5 @@ function withEntities(config) {
  * Generated bundle index. Do not edit.
  */
 
-export { addEntities, addEntity, removeAllEntities, removeEntities, removeEntity, setAllEntities, setEntities, setEntity, updateAllEntities, updateEntities, updateEntity, withEntities };
+export { addEntities, addEntity, entityConfig, removeAllEntities, removeEntities, removeEntity, setAllEntities, setEntities, setEntity, updateAllEntities, updateEntities, updateEntity, withEntities };
 //# sourceMappingURL=ngrx-signals-entities.mjs.map

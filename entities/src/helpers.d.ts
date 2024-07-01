@@ -22,4 +22,4 @@ export declare function addEntitiesMutably(state: EntityState<any>, entities: an
 export declare function setEntityMutably(state: EntityState<any>, entity: any, selectId: SelectEntityId<any>): DidMutate;
 export declare function setEntitiesMutably(state: EntityState<any>, entities: any[], selectId: SelectEntityId<any>): DidMutate;
 export declare function removeEntitiesMutably(state: EntityState<any>, idsOrPredicate: EntityId[] | EntityPredicate<any>): DidMutate;
-export declare function updateEntitiesMutably(state: EntityState<any>, idsOrPredicate: EntityId[] | EntityPredicate<any>, changes: EntityChanges<any>): DidMutate;
+export declare function updateEntitiesMutably(state: EntityState<any>, idsOrPredicate: EntityId[] | EntityPredicate<any>, changes: EntityChanges<any>, selectId: SelectEntityId<any>): DidMutate;

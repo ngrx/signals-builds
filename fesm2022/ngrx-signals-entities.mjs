@@ -97,10 +97,11 @@ function removeEntitiesMutably(state, idsOrPredicate) {
     }
     return didMutate;
 }
-function updateEntitiesMutably(state, idsOrPredicate, changes) {
+function updateEntitiesMutably(state, idsOrPredicate, changes, selectId) {
     const ids = Array.isArray(idsOrPredicate)
         ? idsOrPredicate
         : state.ids.filter((id) => idsOrPredicate(state.entityMap[id]));
+    let newIds = undefined;
     let didMutate = DidMutate.None;
     for (const id of ids) {
         const entity = state.entityMap[id];
@@ -108,7 +109,21 @@ function updateEntitiesMutably(state, idsOrPredicate, changes) {
             const changesRecord = typeof changes === 'function' ? changes(entity) : changes;
             state.entityMap[id] = { ...entity, ...changesRecord };
             didMutate = DidMutate.Entities;
+            const newId = selectId(state.entityMap[id]);
+            if (newId !== id) {
+                state.entityMap[newId] = state.entityMap[id];
+                delete state.entityMap[id];
+                newIds = newIds || {};
+                newIds[id] = newId;
+            }
         }
+    }
+    if (newIds) {
+        state.ids = state.ids.map((id) => newIds[id] ?? id);
+        didMutate = DidMutate.Both;
+    }
+    if (ngDevMode && state.ids.length !== Object.keys(state.entityMap).length) {
+        console.warn('@ngrx/signals/entities: Entities with IDs:', ids, 'are not updated correctly.', 'Make sure to apply valid changes when using `updateEntity`,', '`updateEntities`, and `updateAllEntities` updaters.');
     }
     return didMutate;
 }
@@ -193,29 +208,32 @@ function setAllEntities(entities, config) {
 }
 
 function updateEntity(update, config) {
+    const selectId = getEntityIdSelector(config);
     const stateKeys = getEntityStateKeys(config);
     return (state) => {
         const clonedState = cloneEntityState(state, stateKeys);
-        const didMutate = updateEntitiesMutably(clonedState, [update.id], update.changes);
+        const didMutate = updateEntitiesMutably(clonedState, [update.id], update.changes, selectId);
         return getEntityUpdaterResult(clonedState, stateKeys, didMutate);
     };
 }
 
 function updateEntities(update, config) {
+    const selectId = getEntityIdSelector(config);
     const stateKeys = getEntityStateKeys(config);
     const idsOrPredicate = 'ids' in update ? update.ids : update.predicate;
     return (state) => {
         const clonedState = cloneEntityState(state, stateKeys);
-        const didMutate = updateEntitiesMutably(clonedState, idsOrPredicate, update.changes);
+        const didMutate = updateEntitiesMutably(clonedState, idsOrPredicate, update.changes, selectId);
         return getEntityUpdaterResult(clonedState, stateKeys, didMutate);
     };
 }
 
 function updateAllEntities(changes, config) {
+    const selectId = getEntityIdSelector(config);
     const stateKeys = getEntityStateKeys(config);
     return (state) => {
         const clonedState = cloneEntityState(state, stateKeys);
-        const didMutate = updateEntitiesMutably(clonedState, state[stateKeys.idsKey], changes);
+        const didMutate = updateEntitiesMutably(clonedState, state[stateKeys.idsKey], changes, selectId);
         return getEntityUpdaterResult(clonedState, stateKeys, didMutate);
     };
 }

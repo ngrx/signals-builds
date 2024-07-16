@@ -1,17 +1,15 @@
 import * as i0 from '@angular/core';
 import { untracked, isSignal, computed, signal, inject, DestroyRef, Injectable } from '@angular/core';
 
-const STATE_SIGNAL = Symbol('STATE_SIGNAL');
-
-function getState(stateSignal) {
-    return stateSignal[STATE_SIGNAL]();
-}
-
-function patchState(stateSignal, ...updaters) {
-    stateSignal[STATE_SIGNAL].update((currentState) => updaters.reduce((nextState, updater) => ({
+const STATE_SOURCE = Symbol('STATE_SOURCE');
+function patchState(stateSource, ...updaters) {
+    stateSource[STATE_SOURCE].update((currentState) => updaters.reduce((nextState, updater) => ({
         ...nextState,
         ...(typeof updater === 'function' ? updater(nextState) : updater),
     }), currentState));
+}
+function getState(stateSource) {
+    return stateSource[STATE_SOURCE]();
 }
 
 function toDeepSignal(signal) {
@@ -39,12 +37,12 @@ function isRecord(value) {
 }
 
 function signalState(initialState) {
-    const stateSignal = signal(initialState);
-    const deepSignal = toDeepSignal(stateSignal.asReadonly());
-    Object.defineProperty(deepSignal, STATE_SIGNAL, {
-        value: stateSignal,
+    const stateSource = signal(initialState);
+    const signalState = toDeepSignal(stateSource.asReadonly());
+    Object.defineProperty(signalState, STATE_SOURCE, {
+        value: stateSource,
     });
-    return deepSignal;
+    return signalState;
 }
 
 function signalStore(...args) {
@@ -57,10 +55,10 @@ function signalStore(...args) {
         constructor() {
             const innerStore = features.reduce((store, feature) => feature(store), getInitialInnerStore());
             const { stateSignals, computedSignals, methods, hooks } = innerStore;
-            const props = { ...stateSignals, ...computedSignals, ...methods };
-            this[STATE_SIGNAL] = innerStore[STATE_SIGNAL];
-            for (const key in props) {
-                this[key] = props[key];
+            const storeMembers = { ...stateSignals, ...computedSignals, ...methods };
+            this[STATE_SOURCE] = innerStore[STATE_SOURCE];
+            for (const key in storeMembers) {
+                this[key] = storeMembers[key];
             }
             const { onInit, onDestroy } = hooks;
             if (onInit) {
@@ -81,7 +79,7 @@ function signalStore(...args) {
 }
 function getInitialInnerStore() {
     return {
-        [STATE_SIGNAL]: signal({}),
+        [STATE_SOURCE]: signal({}),
         stateSignals: {},
         computedSignals: {},
         methods: {},
@@ -99,13 +97,19 @@ function type() {
     return undefined;
 }
 
-function excludeKeys(obj, keys) {
-    return Object.keys(obj).reduce((acc, key) => {
-        if (!keys.includes(key)) {
-            acc[key] = obj[key];
-        }
-        return acc;
-    }, {});
+function assertUniqueStoreMembers(store, newMemberKeys) {
+    if (!ngDevMode) {
+        return;
+    }
+    const storeMembers = {
+        ...store.stateSignals,
+        ...store.computedSignals,
+        ...store.methods,
+    };
+    const overriddenKeys = Object.keys(storeMembers).filter((memberKey) => newMemberKeys.includes(memberKey));
+    if (overriddenKeys.length > 0) {
+        console.warn('@ngrx/signals: SignalStore members cannot be overridden.', 'Trying to override:', overriddenKeys.join(', '));
+    }
 }
 
 function withComputed(signalsFactory) {
@@ -114,28 +118,24 @@ function withComputed(signalsFactory) {
             ...store.stateSignals,
             ...store.computedSignals,
         });
-        const computedSignalsKeys = Object.keys(computedSignals);
-        const stateSignals = excludeKeys(store.stateSignals, computedSignalsKeys);
-        const methods = excludeKeys(store.methods, computedSignalsKeys);
+        assertUniqueStoreMembers(store, Object.keys(computedSignals));
         return {
             ...store,
-            stateSignals,
             computedSignals: { ...store.computedSignals, ...computedSignals },
-            methods,
         };
     };
 }
 
 function withHooks(hooksOrFactory) {
     return (store) => {
-        const storeProps = {
-            [STATE_SIGNAL]: store[STATE_SIGNAL],
+        const storeMembers = {
+            [STATE_SOURCE]: store[STATE_SOURCE],
             ...store.stateSignals,
             ...store.computedSignals,
             ...store.methods,
         };
         const hooks = typeof hooksOrFactory === 'function'
-            ? hooksOrFactory(storeProps)
+            ? hooksOrFactory(storeMembers)
             : hooksOrFactory;
         const createHook = (name) => {
             const hook = hooks[name];
@@ -145,7 +145,7 @@ function withHooks(hooksOrFactory) {
                     if (currentHook) {
                         currentHook();
                     }
-                    hook(storeProps);
+                    hook(storeMembers);
                 }
                 : currentHook;
         };
@@ -162,18 +162,14 @@ function withHooks(hooksOrFactory) {
 function withMethods(methodsFactory) {
     return (store) => {
         const methods = methodsFactory({
-            [STATE_SIGNAL]: store[STATE_SIGNAL],
+            [STATE_SOURCE]: store[STATE_SOURCE],
             ...store.stateSignals,
             ...store.computedSignals,
             ...store.methods,
         });
-        const methodsKeys = Object.keys(methods);
-        const stateSignals = excludeKeys(store.stateSignals, methodsKeys);
-        const computedSignals = excludeKeys(store.computedSignals, methodsKeys);
+        assertUniqueStoreMembers(store, Object.keys(methods));
         return {
             ...store,
-            stateSignals,
-            computedSignals,
             methods: { ...store.methods, ...methods },
         };
     };
@@ -183,21 +179,18 @@ function withState(stateOrFactory) {
     return (store) => {
         const state = typeof stateOrFactory === 'function' ? stateOrFactory() : stateOrFactory;
         const stateKeys = Object.keys(state);
-        store[STATE_SIGNAL].update((currentState) => ({
+        assertUniqueStoreMembers(store, stateKeys);
+        store[STATE_SOURCE].update((currentState) => ({
             ...currentState,
             ...state,
         }));
         const stateSignals = stateKeys.reduce((acc, key) => {
-            const sliceSignal = computed(() => store[STATE_SIGNAL]()[key]);
+            const sliceSignal = computed(() => store[STATE_SOURCE]()[key]);
             return { ...acc, [key]: toDeepSignal(sliceSignal) };
         }, {});
-        const computedSignals = excludeKeys(store.computedSignals, stateKeys);
-        const methods = excludeKeys(store.methods, stateKeys);
         return {
             ...store,
             stateSignals: { ...store.stateSignals, ...stateSignals },
-            computedSignals,
-            methods,
         };
     };
 }

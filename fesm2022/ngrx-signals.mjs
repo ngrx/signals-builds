@@ -47,16 +47,19 @@ function signalState(initialState) {
 
 function signalStore(...args) {
     const signalStoreArgs = [...args];
-    const config = 'providedIn' in signalStoreArgs[0]
-        ? signalStoreArgs.shift()
-        : {};
+    const config = typeof signalStoreArgs[0] === 'function'
+        ? {}
+        : signalStoreArgs.shift();
     const features = signalStoreArgs;
     class SignalStore {
         constructor() {
             const innerStore = features.reduce((store, feature) => feature(store), getInitialInnerStore());
             const { stateSignals, computedSignals, methods, hooks } = innerStore;
             const storeMembers = { ...stateSignals, ...computedSignals, ...methods };
-            this[STATE_SOURCE] = innerStore[STATE_SOURCE];
+            this[STATE_SOURCE] =
+                config.protectedState === false
+                    ? innerStore[STATE_SOURCE]
+                    : innerStore[STATE_SOURCE].asReadonly();
             for (const key in storeMembers) {
                 this[key] = storeMembers[key];
             }

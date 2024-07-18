@@ -1,6 +1,6 @@
 import { Signal } from '@angular/core';
 import { DeepSignal } from './deep-signal';
-import { StateSource } from './state-source';
+import { WritableStateSource } from './state-source';
 import { IsKnownRecord, Prettify } from './ts-helpers';
 export type StateSignals<State> = IsKnownRecord<Prettify<State>> extends true ? {
     [Key in keyof State]: IsKnownRecord<State[Key]> extends true ? DeepSignal<State[Key]> : Signal<State[Key]>;
@@ -16,7 +16,7 @@ export type InnerSignalStore<State extends object = object, ComputedSignals exte
     computedSignals: ComputedSignals;
     methods: Methods;
     hooks: SignalStoreHooks;
-} & StateSource<State>;
+} & WritableStateSource<State>;
 export type SignalStoreFeatureResult = {
     state: object;
     computed: SignalsDictionary;

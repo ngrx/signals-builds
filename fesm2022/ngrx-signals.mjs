@@ -1,15 +1,51 @@
 import * as i0 from '@angular/core';
-import { untracked, isSignal, computed, signal, inject, DestroyRef, Injectable } from '@angular/core';
+import { assertInInjectionContext, inject, Injector, DestroyRef, untracked, isSignal, computed, signal, Injectable } from '@angular/core';
+import { SIGNAL } from '@angular/core/primitives/signals';
 
+const STATE_WATCHERS = new WeakMap();
 const STATE_SOURCE = Symbol('STATE_SOURCE');
 function patchState(stateSource, ...updaters) {
     stateSource[STATE_SOURCE].update((currentState) => updaters.reduce((nextState, updater) => ({
         ...nextState,
         ...(typeof updater === 'function' ? updater(nextState) : updater),
     }), currentState));
+    notifyWatchers(stateSource);
 }
 function getState(stateSource) {
     return stateSource[STATE_SOURCE]();
+}
+function watchState(stateSource, watcher, config) {
+    if (!config?.injector) {
+        assertInInjectionContext(watchState);
+    }
+    const injector = config?.injector ?? inject(Injector);
+    const destroyRef = injector.get(DestroyRef);
+    addWatcher(stateSource, watcher);
+    watcher(getState(stateSource));
+    const destroy = () => removeWatcher(stateSource, watcher);
+    destroyRef.onDestroy(destroy);
+    return { destroy };
+}
+function getWatchers(stateSource) {
+    return STATE_WATCHERS.get(stateSource[STATE_SOURCE][SIGNAL]) || [];
+}
+function notifyWatchers(stateSource) {
+    const watchers = getWatchers(stateSource);
+    for (const watcher of watchers) {
+        const state = untracked(() => getState(stateSource));
+        watcher(state);
+    }
+}
+function addWatcher(stateSource, watcher) {
+    const watchers = getWatchers(stateSource);
+    STATE_WATCHERS.set(stateSource[STATE_SOURCE][SIGNAL], [
+        ...watchers,
+        watcher,
+    ]);
+}
+function removeWatcher(stateSource, watcher) {
+    const watchers = getWatchers(stateSource);
+    STATE_WATCHERS.set(stateSource[STATE_SOURCE][SIGNAL], watchers.filter((w) => w !== watcher));
 }
 
 function toDeepSignal(signal) {
@@ -202,5 +238,5 @@ function withState(stateOrFactory) {
  * Generated bundle index. Do not edit.
  */
 
-export { getState, patchState, signalState, signalStore, signalStoreFeature, type, withComputed, withHooks, withMethods, withState };
+export { getState, patchState, signalState, signalStore, signalStoreFeature, type, watchState, withComputed, withHooks, withMethods, withState };
 //# sourceMappingURL=ngrx-signals.mjs.map

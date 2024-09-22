@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.migrateWritableStateSource = void 0;
+exports.migrateWritableStateSource = migrateWritableStateSource;
+exports.default = default_1;
 var ts = require("typescript");
 var schematics_1 = require("@angular-devkit/schematics");
 var schematics_core_1 = require("../../schematics-core");
@@ -29,7 +30,6 @@ function migrateWritableStateSource() {
         }
     };
 }
-exports.migrateWritableStateSource = migrateWritableStateSource;
 function visitIdentifiers(node, visitor) {
     if (ts.isIdentifier(node)) {
         visitor(node);
@@ -39,5 +39,4 @@ function visitIdentifiers(node, visitor) {
 function default_1() {
     return (0, schematics_1.chain)([migrateWritableStateSource()]);
 }
-exports.default = default_1;
 //# sourceMappingURL=index.js.map

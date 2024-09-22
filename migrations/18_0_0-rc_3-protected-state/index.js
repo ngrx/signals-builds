@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = migrateWritableStateSource;
 var schematics_core_1 = require("../../schematics-core");
 var ts = require("typescript");
 var schematics_core_2 = require("../../schematics-core");
@@ -40,7 +41,6 @@ function migrateWritableStateSource() {
         });
     };
 }
-exports.default = migrateWritableStateSource;
 function visitCallExpression(node, name, callback) {
     if (ts.isCallExpression(node) &&
         ts.isIdentifier(node.expression) &&

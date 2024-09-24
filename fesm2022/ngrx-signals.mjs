@@ -1,6 +1,5 @@
 import * as i0 from '@angular/core';
 import { assertInInjectionContext, inject, Injector, DestroyRef, untracked, isSignal, computed, signal, Injectable } from '@angular/core';
-import { SIGNAL } from '@angular/core/primitives/signals';
 
 const STATE_WATCHERS = new WeakMap();
 const STATE_SOURCE = Symbol('STATE_SOURCE');
@@ -27,7 +26,7 @@ function watchState(stateSource, watcher, config) {
     return { destroy };
 }
 function getWatchers(stateSource) {
-    return STATE_WATCHERS.get(stateSource[STATE_SOURCE][SIGNAL]) || [];
+    return STATE_WATCHERS.get(stateSource[STATE_SOURCE]) || [];
 }
 function notifyWatchers(stateSource) {
     const watchers = getWatchers(stateSource);
@@ -38,14 +37,11 @@ function notifyWatchers(stateSource) {
 }
 function addWatcher(stateSource, watcher) {
     const watchers = getWatchers(stateSource);
-    STATE_WATCHERS.set(stateSource[STATE_SOURCE][SIGNAL], [
-        ...watchers,
-        watcher,
-    ]);
+    STATE_WATCHERS.set(stateSource[STATE_SOURCE], [...watchers, watcher]);
 }
 function removeWatcher(stateSource, watcher) {
     const watchers = getWatchers(stateSource);
-    STATE_WATCHERS.set(stateSource[STATE_SOURCE][SIGNAL], watchers.filter((w) => w !== watcher));
+    STATE_WATCHERS.set(stateSource[STATE_SOURCE], watchers.filter((w) => w !== watcher));
 }
 
 function toDeepSignal(signal) {
@@ -92,10 +88,7 @@ function signalStore(...args) {
             const innerStore = features.reduce((store, feature) => feature(store), getInitialInnerStore());
             const { stateSignals, computedSignals, methods, hooks } = innerStore;
             const storeMembers = { ...stateSignals, ...computedSignals, ...methods };
-            this[STATE_SOURCE] =
-                config.protectedState === false
-                    ? innerStore[STATE_SOURCE]
-                    : innerStore[STATE_SOURCE].asReadonly();
+            this[STATE_SOURCE] = innerStore[STATE_SOURCE];
             for (const key in storeMembers) {
                 this[key] = storeMembers[key];
             }

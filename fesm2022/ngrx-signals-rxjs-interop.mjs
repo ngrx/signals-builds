@@ -1,35 +1,51 @@
 import { assertInInjectionContext, inject, Injector, DestroyRef, isSignal, effect, untracked } from '@angular/core';
-import { Subject, isObservable, noop } from 'rxjs';
+import { Subject, noop, isObservable } from 'rxjs';
 
 function rxMethod(generator, config) {
     if (!config?.injector) {
         assertInInjectionContext(rxMethod);
     }
-    const injector = config?.injector ?? inject(Injector);
-    const destroyRef = injector.get(DestroyRef);
+    const sourceInjector = config?.injector ?? inject(Injector);
     const source$ = new Subject();
     const sourceSub = generator(source$).subscribe();
-    destroyRef.onDestroy(() => sourceSub.unsubscribe());
-    const rxMethodFn = (input) => {
+    sourceInjector.get(DestroyRef).onDestroy(() => sourceSub.unsubscribe());
+    const rxMethodFn = (input, config) => {
+        if (isStatic(input)) {
+            source$.next(input);
+            return { unsubscribe: noop };
+        }
+        const instanceInjector = config?.injector ?? getCallerInjector() ?? sourceInjector;
         if (isSignal(input)) {
             const watcher = effect(() => {
                 const value = input();
                 untracked(() => source$.next(value));
-            }, { injector });
+            }, { injector: instanceInjector });
             const instanceSub = { unsubscribe: () => watcher.destroy() };
             sourceSub.add(instanceSub);
             return instanceSub;
         }
-        if (isObservable(input)) {
-            const instanceSub = input.subscribe((value) => source$.next(value));
-            sourceSub.add(instanceSub);
-            return instanceSub;
+        const instanceSub = input.subscribe((value) => source$.next(value));
+        sourceSub.add(instanceSub);
+        if (instanceInjector !== sourceInjector) {
+            instanceInjector
+                .get(DestroyRef)
+                .onDestroy(() => instanceSub.unsubscribe());
         }
-        source$.next(input);
-        return { unsubscribe: noop };
+        return instanceSub;
     };
     rxMethodFn.unsubscribe = sourceSub.unsubscribe.bind(sourceSub);
     return rxMethodFn;
+}
+function isStatic(value) {
+    return !isSignal(value) && !isObservable(value);
+}
+function getCallerInjector() {
+    try {
+        return inject(Injector);
+    }
+    catch {
+        return null;
+    }
 }
 
 /**

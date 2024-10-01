@@ -1,5 +1,33 @@
 import * as i0 from '@angular/core';
-import { assertInInjectionContext, inject, Injector, DestroyRef, untracked, isSignal, computed, signal, Injectable } from '@angular/core';
+import { untracked, isSignal, computed, assertInInjectionContext, inject, Injector, DestroyRef, signal, Injectable } from '@angular/core';
+
+function toDeepSignal(signal) {
+    const value = untracked(() => signal());
+    if (!isRecord(value)) {
+        return signal;
+    }
+    return new Proxy(signal, {
+        get(target, prop) {
+            if (!(prop in value)) {
+                return target[prop];
+            }
+            if (!isSignal(target[prop])) {
+                Object.defineProperty(target, prop, {
+                    value: computed(() => target()[prop]),
+                    configurable: true,
+                });
+            }
+            return toDeepSignal(target[prop]);
+        },
+    });
+}
+function isRecord(value) {
+    return value?.constructor === Object;
+}
+
+function deepComputed(computation) {
+    return toDeepSignal(computed(computation));
+}
 
 const STATE_WATCHERS = new WeakMap();
 const STATE_SOURCE = Symbol('STATE_SOURCE');
@@ -42,30 +70,6 @@ function addWatcher(stateSource, watcher) {
 function removeWatcher(stateSource, watcher) {
     const watchers = getWatchers(stateSource);
     STATE_WATCHERS.set(stateSource[STATE_SOURCE], watchers.filter((w) => w !== watcher));
-}
-
-function toDeepSignal(signal) {
-    const value = untracked(() => signal());
-    if (!isRecord(value)) {
-        return signal;
-    }
-    return new Proxy(signal, {
-        get(target, prop) {
-            if (!(prop in value)) {
-                return target[prop];
-            }
-            if (!isSignal(target[prop])) {
-                Object.defineProperty(target, prop, {
-                    value: computed(() => target()[prop]),
-                    configurable: true,
-                });
-            }
-            return toDeepSignal(target[prop]);
-        },
-    });
-}
-function isRecord(value) {
-    return value?.constructor === Object;
 }
 
 function signalState(initialState) {
@@ -231,5 +235,5 @@ function withState(stateOrFactory) {
  * Generated bundle index. Do not edit.
  */
 
-export { getState, patchState, signalState, signalStore, signalStoreFeature, type, watchState, withComputed, withHooks, withMethods, withState };
+export { deepComputed, getState, patchState, signalState, signalStore, signalStoreFeature, type, watchState, withComputed, withHooks, withMethods, withState };
 //# sourceMappingURL=ngrx-signals.mjs.map

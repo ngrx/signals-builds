@@ -12,7 +12,7 @@ function rxMethod(generator, config) {
     const rxMethodFn = (input, config) => {
         if (isStatic(input)) {
             source$.next(input);
-            return { unsubscribe: noop };
+            return { destroy: noop };
         }
         const instanceInjector = config?.injector ?? getCallerInjector() ?? sourceInjector;
         if (isSignal(input)) {
@@ -20,9 +20,8 @@ function rxMethod(generator, config) {
                 const value = input();
                 untracked(() => source$.next(value));
             }, { injector: instanceInjector });
-            const instanceSub = { unsubscribe: () => watcher.destroy() };
-            sourceSub.add(instanceSub);
-            return instanceSub;
+            sourceSub.add({ unsubscribe: () => watcher.destroy() });
+            return watcher;
         }
         const instanceSub = input.subscribe((value) => source$.next(value));
         sourceSub.add(instanceSub);
@@ -31,9 +30,9 @@ function rxMethod(generator, config) {
                 .get(DestroyRef)
                 .onDestroy(() => instanceSub.unsubscribe());
         }
-        return instanceSub;
+        return { destroy: () => instanceSub.unsubscribe() };
     };
-    rxMethodFn.unsubscribe = sourceSub.unsubscribe.bind(sourceSub);
+    rxMethodFn.destroy = sourceSub.unsubscribe.bind(sourceSub);
     return rxMethodFn;
 }
 function isStatic(value) {

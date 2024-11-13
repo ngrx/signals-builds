@@ -1,8 +1,11 @@
 import { Injector, Signal } from '@angular/core';
-import { Observable, Unsubscribable } from 'rxjs';
+import { Observable } from 'rxjs';
+type RxMethodRef = {
+    destroy: () => void;
+};
 type RxMethod<Input> = ((input: Input | Signal<Input> | Observable<Input>, config?: {
     injector?: Injector;
-}) => Unsubscribable) & Unsubscribable;
+}) => RxMethodRef) & RxMethodRef;
 export declare function rxMethod<Input>(generator: (source$: Observable<Input>) => Observable<unknown>, config?: {
     injector?: Injector;
 }): RxMethod<Input>;

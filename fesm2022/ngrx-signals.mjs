@@ -29,10 +29,43 @@ function deepComputed(computation) {
     return toDeepSignal(computed(computation));
 }
 
+function deepFreeze(target) {
+    Object.freeze(target);
+    const targetIsFunction = typeof target === 'function';
+    Object.getOwnPropertyNames(target).forEach((prop) => {
+        // Ignore Ivy properties, ref: https://github.com/ngrx/platform/issues/2109#issuecomment-582689060
+        if (prop.startsWith('ɵ')) {
+            return;
+        }
+        if (hasOwnProperty(target, prop) &&
+            (targetIsFunction
+                ? prop !== 'caller' && prop !== 'callee' && prop !== 'arguments'
+                : true)) {
+            const propValue = target[prop];
+            if ((isObjectLike(propValue) || typeof propValue === 'function') &&
+                !Object.isFrozen(propValue)) {
+                deepFreeze(propValue);
+            }
+        }
+    });
+    return target;
+}
+function freezeInDevMode(target) {
+    return ngDevMode ? deepFreeze(target) : target;
+}
+function hasOwnProperty(target, propertyName) {
+    return isObjectLike(target)
+        ? Object.prototype.hasOwnProperty.call(target, propertyName)
+        : false;
+}
+function isObjectLike(target) {
+    return typeof target === 'object' && target !== null;
+}
+
 const STATE_WATCHERS = new WeakMap();
 const STATE_SOURCE = Symbol('STATE_SOURCE');
 function patchState(stateSource, ...updaters) {
-    stateSource[STATE_SOURCE].update((currentState) => updaters.reduce((nextState, updater) => ({
+    stateSource[STATE_SOURCE].update((currentState) => updaters.reduce((nextState, updater) => freezeInDevMode({
         ...nextState,
         ...(typeof updater === 'function' ? updater(nextState) : updater),
     }), currentState));
@@ -73,7 +106,7 @@ function removeWatcher(stateSource, watcher) {
 }
 
 function signalState(initialState) {
-    const stateSource = signal(initialState);
+    const stateSource = signal(freezeInDevMode(initialState));
     const signalState = toDeepSignal(stateSource.asReadonly());
     Object.defineProperty(signalState, STATE_SOURCE, {
         value: stateSource,
@@ -216,7 +249,7 @@ function withState(stateOrFactory) {
         const state = typeof stateOrFactory === 'function' ? stateOrFactory() : stateOrFactory;
         const stateKeys = Object.keys(state);
         assertUniqueStoreMembers(store, stateKeys);
-        store[STATE_SOURCE].update((currentState) => ({
+        store[STATE_SOURCE].update((currentState) => freezeInDevMode({
             ...currentState,
             ...state,
         }));

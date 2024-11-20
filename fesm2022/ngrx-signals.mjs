@@ -137,10 +137,10 @@ function signalStore(...args) {
                 inject(DestroyRef).onDestroy(onDestroy);
             }
         }
-        /** @nocollapse */ static ɵfac = i0.ɵɵngDeclareFactory({ minVersion: "12.0.0", version: "19.0.0-rc.1", ngImport: i0, type: SignalStore, deps: [], target: i0.ɵɵFactoryTarget.Injectable });
-        /** @nocollapse */ static ɵprov = i0.ɵɵngDeclareInjectable({ minVersion: "12.0.0", version: "19.0.0-rc.1", ngImport: i0, type: SignalStore, providedIn: config.providedIn || null });
+        /** @nocollapse */ static ɵfac = i0.ɵɵngDeclareFactory({ minVersion: "12.0.0", version: "19.0.0", ngImport: i0, type: SignalStore, deps: [], target: i0.ɵɵFactoryTarget.Injectable });
+        /** @nocollapse */ static ɵprov = i0.ɵɵngDeclareInjectable({ minVersion: "12.0.0", version: "19.0.0", ngImport: i0, type: SignalStore, providedIn: config.providedIn || null });
     }
-    i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "19.0.0-rc.1", ngImport: i0, type: SignalStore, decorators: [{
+    i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "19.0.0", ngImport: i0, type: SignalStore, decorators: [{
                 type: Injectable,
                 args: [{ providedIn: config.providedIn || null }]
             }], ctorParameters: () => [] });

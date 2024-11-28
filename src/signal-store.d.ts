@@ -2,7 +2,7 @@ import { Type } from '@angular/core';
 import { StateSource, WritableStateSource } from './state-source';
 import { EmptyFeatureResult, InnerSignalStore, SignalStoreFeature, SignalStoreFeatureResult, StateSignals } from './signal-store-models';
 import { OmitPrivate, Prettify } from './ts-helpers';
-type SignalStoreMembers<FeatureResult extends SignalStoreFeatureResult> = Prettify<OmitPrivate<StateSignals<FeatureResult['state']> & FeatureResult['computed'] & FeatureResult['methods']>>;
+type SignalStoreMembers<FeatureResult extends SignalStoreFeatureResult> = Prettify<OmitPrivate<StateSignals<FeatureResult['state']> & FeatureResult['props'] & FeatureResult['methods']>>;
 export declare function signalStore<F1 extends SignalStoreFeatureResult>(f1: SignalStoreFeature<EmptyFeatureResult, F1>): Type<SignalStoreMembers<F1> & StateSource<Prettify<OmitPrivate<F1['state']>>>>;
 export declare function signalStore<F1 extends SignalStoreFeatureResult, F2 extends SignalStoreFeatureResult, R extends SignalStoreFeatureResult = F1 & F2>(f1: SignalStoreFeature<EmptyFeatureResult, F1>, f2: SignalStoreFeature<{} & F1, F2>): Type<SignalStoreMembers<R> & StateSource<Prettify<OmitPrivate<R['state']>>>>;
 export declare function signalStore<F1 extends SignalStoreFeatureResult, F2 extends SignalStoreFeatureResult, F3 extends SignalStoreFeatureResult, R extends SignalStoreFeatureResult = F1 & F2 & F3>(f1: SignalStoreFeature<EmptyFeatureResult, F1>, f2: SignalStoreFeature<{} & F1, F2>, f3: SignalStoreFeature<F1 & F2, F3>): Type<SignalStoreMembers<R> & StateSource<Prettify<OmitPrivate<R['state']>>>>;

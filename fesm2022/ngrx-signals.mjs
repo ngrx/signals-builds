@@ -123,8 +123,8 @@ function signalStore(...args) {
     class SignalStore {
         constructor() {
             const innerStore = features.reduce((store, feature) => feature(store), getInitialInnerStore());
-            const { stateSignals, computedSignals, methods, hooks } = innerStore;
-            const storeMembers = { ...stateSignals, ...computedSignals, ...methods };
+            const { stateSignals, props, methods, hooks } = innerStore;
+            const storeMembers = { ...stateSignals, ...props, ...methods };
             this[STATE_SOURCE] = innerStore[STATE_SOURCE];
             for (const key in storeMembers) {
                 this[key] = storeMembers[key];
@@ -150,7 +150,7 @@ function getInitialInnerStore() {
     return {
         [STATE_SOURCE]: signal({}),
         stateSignals: {},
-        computedSignals: {},
+        props: {},
         methods: {},
         hooks: {},
     };
@@ -172,7 +172,7 @@ function assertUniqueStoreMembers(store, newMemberKeys) {
     }
     const storeMembers = {
         ...store.stateSignals,
-        ...store.computedSignals,
+        ...store.props,
         ...store.methods,
     };
     const overriddenKeys = Object.keys(storeMembers).filter((memberKey) => newMemberKeys.includes(memberKey));
@@ -181,18 +181,24 @@ function assertUniqueStoreMembers(store, newMemberKeys) {
     }
 }
 
-function withComputed(signalsFactory) {
+function withProps(propsFactory) {
     return (store) => {
-        const computedSignals = signalsFactory({
+        const props = propsFactory({
+            [STATE_SOURCE]: store[STATE_SOURCE],
             ...store.stateSignals,
-            ...store.computedSignals,
+            ...store.props,
+            ...store.methods,
         });
-        assertUniqueStoreMembers(store, Object.keys(computedSignals));
+        assertUniqueStoreMembers(store, Object.keys(props));
         return {
             ...store,
-            computedSignals: { ...store.computedSignals, ...computedSignals },
+            props: { ...store.props, ...props },
         };
     };
+}
+
+function withComputed(signalsFactory) {
+    return withProps(signalsFactory);
 }
 
 function withHooks(hooksOrFactory) {
@@ -200,7 +206,7 @@ function withHooks(hooksOrFactory) {
         const storeMembers = {
             [STATE_SOURCE]: store[STATE_SOURCE],
             ...store.stateSignals,
-            ...store.computedSignals,
+            ...store.props,
             ...store.methods,
         };
         const hooks = typeof hooksOrFactory === 'function'
@@ -233,7 +239,7 @@ function withMethods(methodsFactory) {
         const methods = methodsFactory({
             [STATE_SOURCE]: store[STATE_SOURCE],
             ...store.stateSignals,
-            ...store.computedSignals,
+            ...store.props,
             ...store.methods,
         });
         assertUniqueStoreMembers(store, Object.keys(methods));
@@ -268,5 +274,5 @@ function withState(stateOrFactory) {
  * Generated bundle index. Do not edit.
  */
 
-export { deepComputed, getState, patchState, signalState, signalStore, signalStoreFeature, type, watchState, withComputed, withHooks, withMethods, withState };
+export { deepComputed, getState, patchState, signalState, signalStore, signalStoreFeature, type, watchState, withComputed, withHooks, withMethods, withProps, withState };
 //# sourceMappingURL=ngrx-signals.mjs.map

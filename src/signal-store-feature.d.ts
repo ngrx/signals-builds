@@ -2,7 +2,7 @@ import { EmptyFeatureResult, SignalStoreFeature, SignalStoreFeatureResult } from
 import { Prettify } from './ts-helpers';
 type PrettifyFeatureResult<Result extends SignalStoreFeatureResult> = Prettify<{
     state: Prettify<Result['state']>;
-    computed: Prettify<Result['computed']>;
+    props: Prettify<Result['props']>;
     methods: Prettify<Result['methods']>;
 }>;
 export declare function signalStoreFeature<F1 extends SignalStoreFeatureResult>(f1: SignalStoreFeature<EmptyFeatureResult, F1>): SignalStoreFeature<EmptyFeatureResult, F1>;

@@ -1,8 +1,8 @@
 import { EmptyFeatureResult, SignalStoreFeature } from '@ngrx/signals';
-import { EntityComputed, EntityState, NamedEntityComputed, NamedEntityState } from './models';
+import { EntityProps, EntityState, NamedEntityProps, NamedEntityState } from './models';
 export declare function withEntities<Entity>(): SignalStoreFeature<EmptyFeatureResult, {
     state: EntityState<Entity>;
-    computed: EntityComputed<Entity>;
+    props: EntityProps<Entity>;
     methods: {};
 }>;
 export declare function withEntities<Entity, Collection extends string>(config: {
@@ -10,13 +10,13 @@ export declare function withEntities<Entity, Collection extends string>(config: 
     collection: Collection;
 }): SignalStoreFeature<EmptyFeatureResult, {
     state: NamedEntityState<Entity, Collection>;
-    computed: NamedEntityComputed<Entity, Collection>;
+    props: NamedEntityProps<Entity, Collection>;
     methods: {};
 }>;
 export declare function withEntities<Entity>(config: {
     entity: Entity;
 }): SignalStoreFeature<EmptyFeatureResult, {
     state: EntityState<Entity>;
-    computed: EntityComputed<Entity>;
+    props: EntityProps<Entity>;
     methods: {};
 }>;

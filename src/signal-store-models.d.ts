@@ -11,20 +11,20 @@ export type SignalStoreHooks = {
     onInit?: () => void;
     onDestroy?: () => void;
 };
-export type InnerSignalStore<State extends object = object, ComputedSignals extends SignalsDictionary = SignalsDictionary, Methods extends MethodsDictionary = MethodsDictionary> = {
+export type InnerSignalStore<State extends object = object, Props extends object = object, Methods extends MethodsDictionary = MethodsDictionary> = {
     stateSignals: StateSignals<State>;
-    computedSignals: ComputedSignals;
+    props: Props;
     methods: Methods;
     hooks: SignalStoreHooks;
 } & WritableStateSource<State>;
 export type SignalStoreFeatureResult = {
     state: object;
-    computed: SignalsDictionary;
+    props: object;
     methods: MethodsDictionary;
 };
 export type EmptyFeatureResult = {
     state: {};
-    computed: {};
+    props: {};
     methods: {};
 };
-export type SignalStoreFeature<Input extends SignalStoreFeatureResult = SignalStoreFeatureResult, Output extends SignalStoreFeatureResult = SignalStoreFeatureResult> = (store: InnerSignalStore<Input['state'], Input['computed'], Input['methods']>) => InnerSignalStore<Output['state'], Output['computed'], Output['methods']>;
+export type SignalStoreFeature<Input extends SignalStoreFeatureResult = SignalStoreFeatureResult, Output extends SignalStoreFeatureResult = SignalStoreFeatureResult> = (store: InnerSignalStore<Input['state'], Input['props'], Input['methods']>) => InnerSignalStore<Output['state'], Output['props'], Output['methods']>;

@@ -1,5 +1,5 @@
 import * as i0 from '@angular/core';
-import { untracked, isSignal, computed, assertInInjectionContext, inject, Injector, DestroyRef, signal, Injectable } from '@angular/core';
+import { untracked, isSignal, computed, assertInInjectionContext, inject, Injector, effect, DestroyRef, signal, Injectable } from '@angular/core';
 
 function toDeepSignal(signal) {
     const value = untracked(() => signal());
@@ -27,6 +27,40 @@ function isRecord(value) {
 
 function deepComputed(computation) {
     return toDeepSignal(computed(computation));
+}
+
+function signalMethod(processingFn, config) {
+    if (!config?.injector) {
+        assertInInjectionContext(signalMethod);
+    }
+    const watchers = [];
+    const sourceInjector = config?.injector ?? inject(Injector);
+    const signalMethodFn = (input, config) => {
+        if (isSignal(input)) {
+            const instanceInjector = config?.injector ?? getCallerInjector() ?? sourceInjector;
+            const watcher = effect((onCleanup) => {
+                const value = input();
+                untracked(() => processingFn(value));
+                onCleanup(() => watchers.splice(watchers.indexOf(watcher), 1));
+            }, { injector: instanceInjector });
+            watchers.push(watcher);
+            return watcher;
+        }
+        else {
+            processingFn(input);
+            return { destroy: () => void true };
+        }
+    };
+    signalMethodFn.destroy = () => watchers.forEach((watcher) => watcher.destroy());
+    return signalMethodFn;
+}
+function getCallerInjector() {
+    try {
+        return inject(Injector);
+    }
+    catch {
+        return null;
+    }
 }
 
 function deepFreeze(target) {
@@ -274,5 +308,5 @@ function withState(stateOrFactory) {
  * Generated bundle index. Do not edit.
  */
 
-export { deepComputed, getState, patchState, signalState, signalStore, signalStoreFeature, type, watchState, withComputed, withHooks, withMethods, withProps, withState };
+export { deepComputed, getState, patchState, signalMethod, signalState, signalStore, signalStoreFeature, type, watchState, withComputed, withHooks, withMethods, withProps, withState };
 //# sourceMappingURL=ngrx-signals.mjs.map

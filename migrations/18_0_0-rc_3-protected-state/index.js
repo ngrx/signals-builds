@@ -4,6 +4,7 @@ exports.default = migrateWritableStateSource;
 var schematics_core_1 = require("../../schematics-core");
 var ts = require("typescript");
 var schematics_core_2 = require("../../schematics-core");
+var visitors_1 = require("../../schematics-core/utility/visitors");
 function migrateWritableStateSource() {
     return function (tree, ctx) {
         (0, schematics_core_1.visitTSSourceFiles)(tree, function (sourceFile) {
@@ -51,17 +52,9 @@ function visitCallExpression(node, name, callback) {
         visitCallExpression(child, name, callback);
     });
 }
-function visitImportDeclaration(node, callback) {
-    if (ts.isImportDeclaration(node)) {
-        callback(node);
-    }
-    ts.forEachChild(node, function (child) {
-        visitImportDeclaration(child, callback);
-    });
-}
 function findImportedName(source) {
     var importedName = '';
-    visitImportDeclaration(source, function (importDeclaration) {
+    (0, visitors_1.visitImportDeclaration)(source, function (importDeclaration) {
         var _a;
         if (importDeclaration.moduleSpecifier.getText().includes('@ngrx/signals')) {
             if (importedName) {

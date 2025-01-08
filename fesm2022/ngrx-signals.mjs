@@ -65,12 +65,17 @@ function signalMethod(processingFn, config) {
     const signalMethodFn = (input, config) => {
         if (isSignal(input)) {
             const instanceInjector = config?.injector ?? getCallerInjector() ?? sourceInjector;
-            const watcher = effect((onCleanup) => {
+            const watcher = effect(() => {
                 const value = input();
                 untracked(() => processingFn(value));
-                onCleanup(() => watchers.splice(watchers.indexOf(watcher), 1));
             }, { injector: instanceInjector });
             watchers.push(watcher);
+            instanceInjector.get(DestroyRef).onDestroy(() => {
+                const ix = watchers.indexOf(watcher);
+                if (ix !== -1) {
+                    watchers.splice(ix, 1);
+                }
+            });
             return watcher;
         }
         else {
